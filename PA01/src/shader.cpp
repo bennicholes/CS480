@@ -27,7 +27,7 @@ void ShaderLoader::loadShader( const char *fileName ){
     // variables
     char *currentInput = new char [ 10000 ];
     ifstream shader( fileName );
-    int index;
+   
 
 
 
