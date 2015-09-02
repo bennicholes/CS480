@@ -2,11 +2,11 @@
 #include <GL/glut.h> // doing otherwise causes compiler shouting
 #include <iostream>
 #include <chrono>
-#define GLM_FORCE_RADIANS
+#define GLM_FORCE_RADIANS // force radians for rotate function
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
-#include "shader.h"
+#include "shader.h" // file for shader loader
 
 //--Data types
 //This object will define the attributes of a vertex(position, color, etc...)
@@ -177,6 +177,7 @@ bool initialize()
 {
     // variables
     ShaderLoader vertexShader, fragmentShader;
+    
     // Initialize basic geometry and shaders for this example
 
     //this defines a cube, this is why a model loader is nice
@@ -243,9 +244,9 @@ bool initialize()
     // Put these into files and write a loader in the future
     // Note the added uniform!
 
+    // load shader and fragment files and pass to gl compiler
     vertexShader.loadShader("../bin/matrix.vert");
     const char *vs = vertexShader.getShader();
-
 
     fragmentShader.loadShader("../bin/matrix.frag");
     const char *fs = fragmentShader.getShader();
