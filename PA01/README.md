@@ -1,5 +1,7 @@
 A simple example of matrix use in OpenGL
 ========================================
+This is the implementation of a rotating cube that rotates along its y axis.
+
 
 Building This Example
 ---------------------
