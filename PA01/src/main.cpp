@@ -2,7 +2,7 @@
 #include <GL/glut.h> // doing otherwise causes compiler shouting
 #include <iostream>
 #include <chrono>
-
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
