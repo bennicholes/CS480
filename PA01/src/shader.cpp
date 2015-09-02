@@ -25,10 +25,15 @@ ShaderLoader::~ShaderLoader(){
 void ShaderLoader::loadShader( const char *fileName ){
 
     // variables
-    char *currentInput = new char [ 10000 ];
+    char *currentInput = new char [ 1000 ];
     ifstream shader( fileName );
    
+    int index;
 
+    for( index = 0; index < 1000; index++ ){
+    shaderInfo[ index ] = '\0';
+    currentInput[ index ] = '\0';
+    }
 
 
     while( shader.good() ){
