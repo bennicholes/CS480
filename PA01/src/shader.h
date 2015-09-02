@@ -1,3 +1,5 @@
+/* class to laod shader attributes in main.cpp */
+
 class ShaderLoader{
 
     public:
