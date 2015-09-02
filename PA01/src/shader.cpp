@@ -4,6 +4,8 @@
 
 using namespace std;
 
+
+// intializes the array that will hold the shader attributes
 ShaderLoader::ShaderLoader( const int bufferSize ){
 
     // variables
@@ -13,7 +15,7 @@ ShaderLoader::ShaderLoader( const int bufferSize ){
 }
 
 
-
+// destructor for shader loader
 ShaderLoader::~ShaderLoader(){
 
     // variables
@@ -21,7 +23,7 @@ ShaderLoader::~ShaderLoader(){
     delete[] shaderInfo;
 }
 
-
+/* reads and concatenates shader attributes the array is cleared each run*/
 void ShaderLoader::loadShader( const char *fileName ){
 
     // variables
@@ -43,6 +45,7 @@ void ShaderLoader::loadShader( const char *fileName ){
     }
 }
 
+// returns the pointer to the array holding the shader
 const char* ShaderLoader::getShader(){
 
     // variables
