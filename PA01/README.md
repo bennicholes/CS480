@@ -2,6 +2,8 @@ A simple example of matrix use in OpenGL
 ========================================
 This is the implementation of a rotating cube that rotates along its y axis.
 Currently I am compiling on Mac OSX Yosemite so the makefile must be altered to compile on linux.
+The current iteration compiles and runs fine on Mac but seg faults in ubuntu. This will be investigated.
+At times I have also witnessed instances of ./Matrix run in a row resulted in shaders not being loaded, this is remedied by a make clean and make.
 
 
 Building This Example
