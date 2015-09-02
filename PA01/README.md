@@ -1,7 +1,7 @@
 A simple example of matrix use in OpenGL
 ========================================
 This is the implementation of a rotating cube that rotates along its y axis.
-Currently I am compilin on Mac OSX Yosemite so the makefile must be altered to compile on linux.
+Currently I am compiling on Mac OSX Yosemite so the makefile must be altered to compile on linux.
 
 
 Building This Example
