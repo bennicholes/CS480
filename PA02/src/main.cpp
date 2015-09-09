@@ -198,9 +198,9 @@ void keyboard(unsigned char key, int x_pos, int y_pos)
     }
 
     // A key upper or lowercase
+    // change rotation clockwise or counterclockwise
     if(key == 65 || key == 97){
-
-        rotationDirection *= -1; //Change the direction the cube is rotating
+        rotationDirection *= -1; 
     }
 
 }
@@ -211,9 +211,10 @@ void mouse( int button, int state, int x_pos, int y_pos){
     // variables
 
     // take mouse input
+    // change rotation clockwise or counterclockwise
     if( button == GLUT_LEFT_BUTTON && state == GLUT_DOWN ){
     
-        rotationDirection *= -1; //Change the direction the cube is rotating
+        rotationDirection *= -1; 
     }
 }
 
