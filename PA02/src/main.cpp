@@ -22,6 +22,10 @@ int w = 640, h = 480;// Window size
 GLuint program;// The GLSL program handle
 GLuint vbo_geometry;// VBO handle for our geometry
 
+// flags for spinning and rotation
+int spin = 0;
+int rotationDirection = 1;
+
 //uniform locations
 GLint loc_mvpmat;// Location of the modelviewprojection matrix in the shader
 
@@ -40,6 +44,8 @@ void render();
 void update();
 void reshape(int n_w, int n_h);
 void keyboard(unsigned char key, int x_pos, int y_pos);
+void mouse( int button, int state, int x_pos, int y_pos );
+void menu( int menuChoice );
 
 //--Resource management
 bool initialize();
@@ -59,6 +65,13 @@ int main(int argc, char **argv)
     glutInitWindowSize(w, h);
     // Name and create the Window
     glutCreateWindow("Matrix Example");
+    
+    // create menu
+    glutCreateMenu(menu);
+    glutAddMenuEntry("Start Spin", 0);
+    glutAddMenuEntry("Stop Spin", 1);
+    glutAddMenuEntry("Exit", 2);  
+    glutAttachMenu(GLUT_RIGHT_BUTTON);
 
     // Now that the window is created the GL context is fully set up
     // Because of that we can now initialize GLEW to prepare work with shaders
@@ -75,6 +88,7 @@ int main(int argc, char **argv)
     glutReshapeFunc(reshape);// Called if the window is resized
     glutIdleFunc(update);// Called if there is nothing else to do
     glutKeyboardFunc(keyboard);// Called if there is keyboard input
+    glutMouseFunc(mouse); // Called if there is mouse input
 
     // Initialize all of our resources(shaders, geometry)
     bool init = initialize();
@@ -140,13 +154,22 @@ void update()
 {
     //total time
     static float angle = 0.0;
+    static float cubeSpin = 0.0;
+
     float dt = getDT();// if you have anything moving, use dt.
 
-    angle += dt * M_PI/2; //move through 90 degrees a second
-    model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angle), 0.0, 4.0 * cos(angle)));
+    // if rotationDirection is negative move counterclockwise
+    angle += dt * M_PI/2 * rotationDirection; //move through 90 degrees a second
+
+    // set spin by multiplying by 0 or 1
+    cubeSpin += dt * M_PI * spin;
 
     // rotate cube
-    model = glm::rotate( model, angle, glm::vec3(0,1,0) );
+    model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angle), 0.0, 4.0 * cos(angle)));
+
+    // spin cube cube
+    model = glm::rotate( model, cubeSpin, glm::vec3(0,1,0) );
+    
     // Update the state of the scene
     glutPostRedisplay();//call the display callback
 }
@@ -164,6 +187,8 @@ void reshape(int n_w, int n_h)
 
 }
 
+
+// Takes keyboard input
 void keyboard(unsigned char key, int x_pos, int y_pos)
 {
     // Handle keyboard input
@@ -171,7 +196,48 @@ void keyboard(unsigned char key, int x_pos, int y_pos)
     {
         exit(0);
     }
+
+    // A key upper or lowercase
+    if(key == 65 || key == 97){
+
+        rotationDirection *= -1; //Change the direction the cube is rotating
+    }
+
 }
+
+// takes mouse input
+void mouse( int button, int state, int x_pos, int y_pos){
+
+    // variables
+
+    // take mouse input
+    if( button == GLUT_LEFT_BUTTON && state == GLUT_DOWN ){
+    
+        rotationDirection *= -1; //Change the direction the cube is rotating
+    }
+}
+
+void menu( int menuChoice ){
+
+    // variables
+
+    // check menu choice
+    switch( menuChoice ){
+    
+    case 0:
+      spin = 1; //start spinning case
+      break;
+
+    case 1:
+      spin = 0; //stop spinning case
+      break;
+
+    case 2: 
+      exit(0); //exit case
+      break;
+  }
+}
+
 
 bool initialize()
 {
