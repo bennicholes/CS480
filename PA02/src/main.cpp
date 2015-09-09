@@ -224,16 +224,19 @@ void menu( int menuChoice ){
     // check menu choice
     switch( menuChoice ){
     
+    // spin
     case 0:
-      spin = 1; //start spinning case
+      spin = 1; 
       break;
 
+    // stop spin
     case 1:
-      spin = 0; //stop spinning case
+      spin = 0; 
       break;
 
+    // exit
     case 2: 
-      exit(0); //exit case
+      exit(0); 
       break;
   }
 }
