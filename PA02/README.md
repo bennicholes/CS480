@@ -1,13 +1,18 @@
-A simple example of matrix use in OpenGL
+Implementation of glut Menus and rotation/spin options for cube
 ========================================
 This is the implementation of a rotating cube that rotates along its y axis.
-Currently I am compiling on Mac OSX Yosemite so the makefile must be altered to compile on linux.
+Currently I am compiling on Mac OSX Yosemite but the makefile is altered to compile on linux.
+The program compiles and runs on nomachine linux.  However the special script /usr/NX/scripts/vgl/vglrun ./Matrix must be used to run the program properly.
 
-The current iteration compiles and runs fine on Mac but seg faults in ubuntu. This will be investigated.
-*UPDATE* This was a problem due to nomachine at ubuntu.cse.unr.edu the program runs fine on the virtual machine in the ecc.
+Menu Functionality includes
+Start Spin - Cube starts spinning 
+Stop Spin - Cube stops spinning
+Exit - Program stops and exits
 
-At times I have also witnessed instances of ./Matrix run in a row resulted in shaders not being loaded, this is remedied by a make clean and make.
-*UPDATE* This was solved by clearing the array during run time.
+Clicking the mouse or pressing the A/a key causes the cube to rotate around a fix position clockwise or counterclockwise.
+
+Problems for this program included researching the glut api to determine how to create windows properly, and the logic behind stopping and starting the spinning of the cube.
+
 
 Building This Example
 ---------------------
