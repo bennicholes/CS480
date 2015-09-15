@@ -1,8 +1,15 @@
 Implementation of glut Menus and rotation/spin options for cube
 ========================================
-This is the implementation of a rotating cube that rotates along its y axis.
+This is the implementation of a rotating cube with a moon that orbits around it.
 Currently I am compiling on Mac OSX Yosemite but the makefile is altered to compile on linux.
 The program compiles and runs on nomachine linux.  However the special script /usr/NX/scripts/vgl/vglrun ./Matrix must be used to run the program properly.
+
+*New Functionality with PAO3*
+Moon included and rendered that will continously orbit the planet no matter its path.  
+I chose to not make the moon spin on its y axis, however I did include it in the code on line 223.  If line 223 is uncommented the moon will spin when the Start Spin option is selected on the right-click menu.
+Keyboard controls were also included. The right arrow key will cause the planet to make its orbit counter clockwise. The left arrow key will cause the planet to make its orbit clockwise.
+The seg fault problem in PA02 with the menu is solved as far as I can tell.  This was solved with a exit flag that is checked for at the begining of update instead of using a exit(0) inside of the menu select.
+
 
 Menu Functionality includes
 Start Spin - Cube starts spinning 
@@ -11,7 +18,7 @@ Exit - Program stops and exits
 
 Clicking the mouse or pressing the A/a key causes the cube to rotate around a fix position clockwise or counterclockwise.
 
-Problems for this program included researching the glut api to determine how to create windows properly, and the logic behind stopping and starting the spinning of the cube.
+Problems for this program included deciding how the moon would be able to keep orbit around the planet.  Another problem I ran into was when I implemented the moon orbiting and spinning, but I forgot to initialize and render the moon.
 
 
 Building This Example
