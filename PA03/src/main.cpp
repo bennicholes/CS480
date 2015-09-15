@@ -26,6 +26,9 @@ GLuint vbo_geometry;// VBO handle for our geometry
 int spin = 0;
 int rotationDirection = 1;
 
+// flag for exit
+bool exitFlag = false;
+
 //uniform locations
 GLint loc_mvpmat;// Location of the modelviewprojection matrix in the shader
 
@@ -34,7 +37,8 @@ GLint loc_position;
 GLint loc_color;
 
 //transform matrices
-glm::mat4 model;//obj->world each object should have its own model matrix
+glm::mat4 planet;//obj->world each object should have its own planet matrix
+glm::mat4 moon;
 glm::mat4 view;//world->eye
 glm::mat4 projection;//eye->clip
 glm::mat4 mvp;//premultiplied modelviewprojection
@@ -44,6 +48,7 @@ void render();
 void update();
 void reshape(int n_w, int n_h);
 void keyboard(unsigned char key, int x_pos, int y_pos);
+void arrowKeyboardInput(int key, int x, int y);
 void mouse( int button, int state, int x_pos, int y_pos );
 void menu( int menuChoice );
 
@@ -88,6 +93,7 @@ int main(int argc, char **argv)
     glutReshapeFunc(reshape);// Called if the window is resized
     glutIdleFunc(update);// Called if there is nothing else to do
     glutKeyboardFunc(keyboard);// Called if there is keyboard input
+    glutSpecialFunc(arrowKeyboardInput);//Called for arrow keys
     glutMouseFunc(mouse); // Called if there is mouse input
 
     // Initialize all of our resources(shaders, geometry)
@@ -113,7 +119,7 @@ void render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //premultiply the matrix for this example
-    mvp = projection * view * model;
+    mvp = projection * view * planet;
 
     //enable the shader program
     glUseProgram(program);
@@ -145,6 +151,41 @@ void render()
     //clean up
     glDisableVertexAttribArray(loc_position);
     glDisableVertexAttribArray(loc_color);
+
+    // initialize moon
+    mvp = projection * view * moon;
+
+    //enable the shader program
+    glUseProgram(program);
+
+    //upload the matrix to the shader
+    glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, glm::value_ptr(mvp));
+
+    //set up the Vertex Buffer Object so it can be drawn
+    glEnableVertexAttribArray(loc_position);
+    glEnableVertexAttribArray(loc_color);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
+    //set pointers into the vbo for each of the attributes(position and color)
+    glVertexAttribPointer( loc_position,//location of attribute
+                           3,//number of elements
+                           GL_FLOAT,//type
+                           GL_FALSE,//normalized?
+                           sizeof(Vertex),//stride
+                           0);//offset
+
+    glVertexAttribPointer( loc_color,
+                           3,
+                           GL_FLOAT,
+                           GL_FALSE,
+                           sizeof(Vertex),
+                           (void*)offsetof(Vertex,color));
+
+    glDrawArrays(GL_TRIANGLES, 0, 36);//mode, starting index, count
+
+    //clean up
+    glDisableVertexAttribArray(loc_position);
+    glDisableVertexAttribArray(loc_color);
+
                            
     //swap the buffers
     glutSwapBuffers();
@@ -152,24 +193,35 @@ void render()
 
 void update()
 {
+    // check if program should exit
+    if(exitFlag){
+      exit(0);
+    }
     //total time
-    static float angle = 0.0;
-    static float cubeSpin = 0.0;
+    static float planetAngle = 0.0;
+    static float planetSpin = 0.0;
+    static float moonAngle = 0.0;
+    static float moonSpin = 0.0;
 
     float dt = getDT();// if you have anything moving, use dt.
 
     // if rotationDirection is negative move counterclockwise
-    angle += dt * M_PI/2 * rotationDirection; //move through 90 degrees a second
-
     // set spin by multiplying by 0 or 1
-    cubeSpin += dt * M_PI * spin;
+    planetAngle += dt * M_PI/2 * rotationDirection; //move through 90 degrees a second
+    planetSpin += dt * M_PI * spin;
 
-    // rotate cube
-    model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angle), 0.0, 4.0 * cos(angle)));
+    // set moon, it does not rotate on its on axis
+    moonAngle += dt * M_PI/2;
+    moonSpin += dt * M_PI * spin;
 
-    // spin cube cube
-    model = glm::rotate( model, cubeSpin, glm::vec3(0,1,0) );
+    // rotate and spin planet
+    planet = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(planetAngle), 0.0, 4.0 * cos(planetAngle)));
+    planet = glm::rotate( planet, planetSpin, glm::vec3(0,1,0) );
     
+    // rotate and spin moon
+    moon = planet * glm::translate( glm::mat4(1.0f), glm::vec3( 3.0 * sin(moonAngle), 0.0, 3.0 * cos(moonAngle)));
+    // moon = glm::rotate( moon, moonSpin, glm::vec3(0,1,0) ); // uncomment to have moon spin as well
+
     // Update the state of the scene
     glutPostRedisplay();//call the display callback
 }
@@ -194,7 +246,7 @@ void keyboard(unsigned char key, int x_pos, int y_pos)
     // Handle keyboard input
     if(key == 27)//ESC
     {
-        exit(0);
+        exitFlag = true;
     }
 
     // A key upper or lowercase
@@ -203,6 +255,21 @@ void keyboard(unsigned char key, int x_pos, int y_pos)
         rotationDirection *= -1; 
     }
 
+}
+
+// takes input for the arrow keys
+void arrowKeyboardInput( int key, int x, int y )
+{
+  // variables
+
+  // check for left and right keys
+  if( key == GLUT_KEY_LEFT ){
+    rotationDirection = 1;
+  }
+
+  if( key == GLUT_KEY_RIGHT ){
+    rotationDirection = -1;
+  }
 }
 
 // takes mouse input
@@ -237,7 +304,7 @@ void menu( int menuChoice ){
 
     // exit
     case 2: 
-      exit(0); 
+      exitFlag = true;
       break;
   }
 }
@@ -250,7 +317,7 @@ bool initialize()
     
     // Initialize basic geometry and shaders for this example
 
-    //this defines a cube, this is why a model loader is nice
+    //this defines a cube, this is why a planet loader is nice
     //you can also do this with a draw elements and indices, try to get that working
     Vertex geometry[] = { {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
                           {{-1.0, -1.0, 1.0}, {0.0, 0.0, 1.0}},
