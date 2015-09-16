@@ -1,5 +1,5 @@
 #include <GL/glew.h> // glew must be included before the main gl libs
-#include <GL/glut.h> // doing otherwise causes compiler shouting
+#include <GL/freeglut.h> // doing otherwise causes compiler shouting
 #include <iostream>
 #include <chrono>
 #define GLM_FORCE_RADIANS // force radians for rotate function
@@ -195,7 +195,7 @@ void update()
 {
     // check if program should exit
     if(exitFlag){
-      exit(0);
+      glutLeaveMainLoop();
     }
     //total time
     static float planetAngle = 0.0;
