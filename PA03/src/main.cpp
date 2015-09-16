@@ -193,7 +193,7 @@ void render()
 
 void update()
 {
-    // check if program should exit
+    // check if program should exitglClear
     if(exitFlag){
       glutLeaveMainLoop();
     }
