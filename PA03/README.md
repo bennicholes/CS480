@@ -8,7 +8,7 @@ The program compiles and runs on nomachine linux.  However the special script /u
 Moon included and rendered that will continously orbit the planet no matter its path.  
 I chose to not make the moon spin on its y axis, however I did include it in the code on line 223.  If line 223 is uncommented the moon will spin when the Start Spin option is selected on the right-click menu.
 Keyboard controls were also included. The right arrow key will cause the planet to make its orbit counter clockwise. The left arrow key will cause the planet to make its orbit clockwise.
-The seg fault problem in PA02 with the menu is solved as far as I can tell.  This was solved with a exit flag that is checked for at the begining of update instead of using a exit(0) inside of the menu select.
+The seg fault problem in PA02 with the menu is solved as far as I can tell with the addition of the freeglut library. I also made a change through an exit flag that is checked for at the begining of update using glutFreeMainLoop() instead of using a exit(0) inside of the menu select.
 
 
 Menu Functionality includes
