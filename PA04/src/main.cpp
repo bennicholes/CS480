@@ -24,10 +24,6 @@ GLuint program;// The GLSL program handle
 GLuint vbo_geometry;// VBO handle for our geometry
 int numVertices;
 
-// flags for spinning and rotation
-int spin = 0;
-int rotationDirection = 1;
-
 // flag for exit
 bool exitFlag = false;
 
@@ -79,9 +75,7 @@ int main(int argc, char **argv)
     
     // create menu
     glutCreateMenu(menu);
-    glutAddMenuEntry("Start Spin", 0);
-    glutAddMenuEntry("Stop Spin", 1);
-    glutAddMenuEntry("Exit", 2);  
+    glutAddMenuEntry("Exit", 0);  
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 
     // Now that the window is created the GL context is fully set up
@@ -165,23 +159,9 @@ void update()
 {
     // check if program should exitglClear
     if(exitFlag){
-      //glutLeaveMainLoop();
+      // glutLeaveMainLoop();
+        exit(0);
     }
-    //total time
-    static float modelAngle = 0.0;
-    static float modelSpin = 0.0;
-
-    float dt = getDT();// if you have anything moving, use dt.
-
-    // if rotationDirection is negative move counterclockwise
-    // set spin by multiplying by 0 or 1
-    model += dt * M_PI/2 * rotationDirection; //move through 90 degrees a second
-    model += dt * M_PI * spin;
-
-    // rotate and spin planet
-    model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(modelAngle), 0.0, 4.0 * cos(modelAngle)));
-    model = glm::rotate( model, modelSpin, glm::vec3(0,1,0) );
-    
     // Update the state of the scene
     glutPostRedisplay();//call the display callback
 }
@@ -209,12 +189,6 @@ void keyboard(unsigned char key, int x_pos, int y_pos)
         exitFlag = true;
     }
 
-    // A key upper or lowercase
-    // change rotation clockwise or counterclockwise
-    if(key == 65 || key == 97){
-        rotationDirection *= -1; 
-    }
-
 }
 
 
@@ -225,34 +199,18 @@ void mouse( int button, int state, int x_pos, int y_pos){
 
     // take mouse input
     // change rotation clockwise or counterclockwise
-    if( button == GLUT_LEFT_BUTTON && state == GLUT_DOWN ){
+    // if( button == GLUT_LEFT_BUTTON && state == GLUT_DOWN ){
     
-        rotationDirection *= -1; 
-    }
+    //     rotationDirection *= -1; 
+    // }
 }
 
 void menu( int menuChoice ){
 
     // variables
 
-    // check menu choice
-    switch( menuChoice ){
-    
-    // spin
-    case 0:
-      spin = 1; 
-      break;
-
-    // stop spin
-    case 1:
-      spin = 0; 
-      break;
-
-    // exit
-    case 2: 
-      exitFlag = true;
-      break;
-  }
+    if( menuChoice == 0  )
+        exitFlag = true;
 }
 
 
@@ -502,9 +460,8 @@ Vertex* loadObject( const char *filePath ){
     geometry[i].position[1] = temp_vertices[ vertexIndex-1 ].y;
     geometry[i].position[2] = temp_vertices[ vertexIndex-1 ].z;
 
-    geometry[i].color[0] = 1.0f / ( (i % 2) + 1.0f) ;
-    geometry[i].color[1] = 1.0f / ( (i % 4) + 1.0f) ;
-    geometry[i].color[2] = 1.0f / ( (i % 6) + 1.0f) ;
+    geometry[i].color[0] = 1.0f / ( (i % 5) + 1.0f) ;
+
   }
   return geometry;
 }
