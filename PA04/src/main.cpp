@@ -2,6 +2,7 @@
 #include <GL/freeglut.h> // doing otherwise causes compiler shouting
 #include <iostream>
 #include <chrono>
+#include <vector>
 #define GLM_FORCE_RADIANS // force radians for rotate function
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -21,6 +22,7 @@ struct Vertex
 int w = 640, h = 480;// Window size
 GLuint program;// The GLSL program handle
 GLuint vbo_geometry;// VBO handle for our geometry
+int numVertices;
 
 // flags for spinning and rotation
 int spin = 0;
@@ -37,8 +39,7 @@ GLint loc_position;
 GLint loc_color;
 
 //transform matrices
-glm::mat4 planet;//obj->world each object should have its own planet matrix
-glm::mat4 moon;
+glm::mat4 model;//obj->world each object should have its own planet matrix
 glm::mat4 view;//world->eye
 glm::mat4 projection;//eye->clip
 glm::mat4 mvp;//premultiplied modelviewprojection
@@ -48,22 +49,27 @@ void render();
 void update();
 void reshape(int n_w, int n_h);
 void keyboard(unsigned char key, int x_pos, int y_pos);
-void arrowKeyboardInput(int key, int x, int y);
 void mouse( int button, int state, int x_pos, int y_pos );
 void menu( int menuChoice );
 
 //--Resource management
-bool initialize();
+bool initialize(char * argv);
 void cleanUp();
 
 //--Random time things
 float getDT();
 std::chrono::time_point<std::chrono::high_resolution_clock> t1,t2;
 
+Vertex* loadObject( const char *file );
 
 //--Main
 int main(int argc, char **argv)
 {
+
+    if( argc != 2 ){
+        std::cout<<"This program needs the file.";
+        exit(1);
+    }
     // Initialize glut
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
@@ -93,11 +99,10 @@ int main(int argc, char **argv)
     glutReshapeFunc(reshape);// Called if the window is resized
     glutIdleFunc(update);// Called if there is nothing else to do
     glutKeyboardFunc(keyboard);// Called if there is keyboard input
-    glutSpecialFunc(arrowKeyboardInput);//Called for arrow keys
     glutMouseFunc(mouse); // Called if there is mouse input
 
     // Initialize all of our resources(shaders, geometry)
-    bool init = initialize();
+    bool init = initialize(argv[1]);
     if(init)
     {
         t1 = std::chrono::high_resolution_clock::now();
@@ -119,7 +124,7 @@ void render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //premultiply the matrix for this example
-    mvp = projection * view * planet;
+    mvp = projection * view * model;
 
     //enable the shader program
     glUseProgram(program);
@@ -146,48 +151,13 @@ void render()
                            sizeof(Vertex),
                            (void*)offsetof(Vertex,color));
 
-    glDrawArrays(GL_TRIANGLES, 0, 36);//mode, starting index, count
+    glDrawArrays(GL_TRIANGLES, 0, numVertices);//mode, starting index, count
 
     //clean up
     glDisableVertexAttribArray(loc_position);
     glDisableVertexAttribArray(loc_color);
-
-    // initialize moon
-    mvp = projection * view * moon;
-
-    //enable the shader program
-    glUseProgram(program);
-
-    //upload the matrix to the shader
-    glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, glm::value_ptr(mvp));
-
-    //set up the Vertex Buffer Object so it can be drawn
-    glEnableVertexAttribArray(loc_position);
-    glEnableVertexAttribArray(loc_color);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-    //set pointers into the vbo for each of the attributes(position and color)
-    glVertexAttribPointer( loc_position,//location of attribute
-                           3,//number of elements
-                           GL_FLOAT,//type
-                           GL_FALSE,//normalized?
-                           sizeof(Vertex),//stride
-                           0);//offset
-
-    glVertexAttribPointer( loc_color,
-                           3,
-                           GL_FLOAT,
-                           GL_FALSE,
-                           sizeof(Vertex),
-                           (void*)offsetof(Vertex,color));
-
-    glDrawArrays(GL_TRIANGLES, 0, 36);//mode, starting index, count
-
-    //clean up
-    glDisableVertexAttribArray(loc_position);
-    glDisableVertexAttribArray(loc_color);
-
-                           
-    //swap the buffers
+      
+    //swap the buffer
     glutSwapBuffers();
 }
 
@@ -195,33 +165,23 @@ void update()
 {
     // check if program should exitglClear
     if(exitFlag){
-      glutLeaveMainLoop();
+      //glutLeaveMainLoop();
     }
     //total time
-    static float planetAngle = 0.0;
-    static float planetSpin = 0.0;
-    static float moonAngle = 0.0;
-    static float moonSpin = 0.0;
+    static float modelAngle = 0.0;
+    static float modelSpin = 0.0;
 
     float dt = getDT();// if you have anything moving, use dt.
 
     // if rotationDirection is negative move counterclockwise
     // set spin by multiplying by 0 or 1
-    planetAngle += dt * M_PI/2 * rotationDirection; //move through 90 degrees a second
-    planetSpin += dt * M_PI * spin;
-
-    // set moon, it does not rotate on its on axis
-    moonAngle += dt * M_PI/2;
-    moonSpin += dt * M_PI * spin;
+    model += dt * M_PI/2 * rotationDirection; //move through 90 degrees a second
+    model += dt * M_PI * spin;
 
     // rotate and spin planet
-    planet = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(planetAngle), 0.0, 4.0 * cos(planetAngle)));
-    planet = glm::rotate( planet, planetSpin, glm::vec3(0,1,0) );
+    model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(modelAngle), 0.0, 4.0 * cos(modelAngle)));
+    model = glm::rotate( model, modelSpin, glm::vec3(0,1,0) );
     
-    // rotate and spin moon
-    moon = planet * glm::translate( glm::mat4(1.0f), glm::vec3( 3.0 * sin(moonAngle), 0.0, 3.0 * cos(moonAngle)));
-    // moon = glm::rotate( moon, moonSpin, glm::vec3(0,1,0) ); // uncomment to have moon spin as well
-
     // Update the state of the scene
     glutPostRedisplay();//call the display callback
 }
@@ -257,20 +217,6 @@ void keyboard(unsigned char key, int x_pos, int y_pos)
 
 }
 
-// takes input for the arrow keys
-void arrowKeyboardInput( int key, int x, int y )
-{
-  // variables
-
-  // check for left and right keys
-  if( key == GLUT_KEY_LEFT ){
-    rotationDirection = 1;
-  }
-
-  if( key == GLUT_KEY_RIGHT ){
-    rotationDirection = -1;
-  }
-}
 
 // takes mouse input
 void mouse( int button, int state, int x_pos, int y_pos){
@@ -310,67 +256,20 @@ void menu( int menuChoice ){
 }
 
 
-bool initialize()
+bool initialize( char* argv)
 {
     // variables
     ShaderLoader vertexShader, fragmentShader;
     
     // Initialize basic geometry and shaders for this example
 
-    //this defines a cube, this is why a planet loader is nice
-    //you can also do this with a draw elements and indices, try to get that working
-    Vertex geometry[] = { {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
-                          {{-1.0, -1.0, 1.0}, {0.0, 0.0, 1.0}},
-                          {{-1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}},
-
-                          {{1.0, 1.0, -1.0}, {1.0, 1.0, 0.0}},
-                          {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
-                          {{-1.0, 1.0, -1.0}, {0.0, 1.0, 0.0}},
-                          
-                          {{1.0, -1.0, 1.0}, {1.0, 0.0, 1.0}},
-                          {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
-                          {{1.0, -1.0, -1.0}, {1.0, 0.0, 0.0}},
-                          
-                          {{1.0, 1.0, -1.0}, {1.0, 1.0, 0.0}},
-                          {{1.0, -1.0, -1.0}, {1.0, 0.0, 0.0}},
-                          {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
-
-                          {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
-                          {{-1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}},
-                          {{-1.0, 1.0, -1.0}, {0.0, 1.0, 0.0}},
-
-                          {{1.0, -1.0, 1.0}, {1.0, 0.0, 1.0}},
-                          {{-1.0, -1.0, 1.0}, {0.0, 0.0, 1.0}},
-                          {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
-
-                          {{-1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}},
-                          {{-1.0, -1.0, 1.0}, {0.0, 0.0, 1.0}},
-                          {{1.0, -1.0, 1.0}, {1.0, 0.0, 1.0}},
-                          
-                          {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}},
-                          {{1.0, -1.0, -1.0}, {1.0, 0.0, 0.0}},
-                          {{1.0, 1.0, -1.0}, {1.0, 1.0, 0.0}},
-
-                          {{1.0, -1.0, -1.0}, {1.0, 0.0, 0.0}},
-                          {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}},
-                          {{1.0, -1.0, 1.0}, {1.0, 0.0, 1.0}},
-
-                          {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}},
-                          {{1.0, 1.0, -1.0}, {1.0, 1.0, 0.0}},
-                          {{-1.0, 1.0, -1.0}, {0.0, 1.0, 0.0}},
-
-                          {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}},
-                          {{-1.0, 1.0, -1.0}, {0.0, 1.0, 0.0}},
-                          {{-1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}},
-
-                          {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}},
-                          {{-1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}},
-                          {{1.0, -1.0, 1.0}, {1.0, 0.0, 1.0}}
-                        };
+    // load object
+    Vertex *geometry = loadObject(argv);
+                        
     // Create a Vertex Buffer object to store this vertex info on the GPU
     glGenBuffers(1, &vbo_geometry);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(geometry), geometry, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(Vertex), geometry, GL_STATIC_DRAW);
 
     //--Geometry done
 
@@ -490,3 +389,162 @@ float getDT()
     t1 = std::chrono::high_resolution_clock::now();
     return ret;
 }
+
+// object loader
+Vertex* loadObject( const char *filePath ){
+  std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
+  std::vector< glm::vec3 > temp_vertices;
+  std::vector< glm::vec2 > temp_uvs;
+  std::vector< glm::vec3 > temp_normals;
+  bool hasTextures = false;
+  bool hasNormals = false;
+
+  FILE *file = fopen(filePath, "r");
+  if( file == NULL ){
+    printf("Can't open file \n");
+    // return false;
+  }
+
+  while( 1 ){
+    
+    char lineHeader[128];
+    // read the first word of the line
+    int res = fscanf(file , "%s", lineHeader);
+    if (res == EOF)
+      break; // EOF = End Of File. Quit the loop.
+
+    // else : parse lineHeader
+    if ( strcmp( lineHeader, "v" ) == 0 )
+    {
+      glm::vec3 vertex;
+      fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z );
+      temp_vertices.push_back(vertex);
+    }
+    else if ( strcmp( lineHeader, "vt" ) == 0 )
+    {
+      hasTextures = true;
+      glm::vec2 uv;
+      fscanf(file, "%f %f\n", &uv.x, &uv.y );
+      temp_uvs.push_back(uv);
+    }
+    else if ( strcmp( lineHeader, "vn" ) == 0 )
+    {
+      hasNormals = true;
+      glm::vec3 normal;
+      fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z );
+      temp_normals.push_back(normal);
+    }
+    else if ( strcmp( lineHeader, "f" ) == 0 )
+    {
+      std::string vertex1, vertex2, vertex3;
+      unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
+
+      if(!hasTextures && !hasNormals)
+      {
+      int matches = fscanf(file, "%d %d %d\n", &vertexIndex[0], &vertexIndex[1], &vertexIndex[2] );
+        if (matches != 3)
+        {
+            printf("File can't be read by our simple parser : ( Try exporting with other options\n");
+            //return false;
+        }
+        vertexIndices.push_back(vertexIndex[0]);
+        vertexIndices.push_back(vertexIndex[1]);
+        vertexIndices.push_back(vertexIndex[2]);
+      }
+
+      else if(hasTextures && !hasNormals)
+      {
+        int matches = fscanf(file, "%d/%d %d/%d %d/%d\n", &vertexIndex[0], &uvIndex[0], &vertexIndex[1], &uvIndex[1], &vertexIndex[2], &uvIndex[2] );
+        if (matches != 6)
+        {
+            printf("File can't be read by our simple parser : ( Try exporting with other options\n");
+            //return false;
+        }
+        vertexIndices.push_back(vertexIndex[0]);
+        vertexIndices.push_back(vertexIndex[1]);
+        vertexIndices.push_back(vertexIndex[2]);
+      }
+
+      else if(!hasTextures && hasNormals)
+      {
+        int matches = fscanf(file, "%d//%d %d//%d %d//%d\n", &vertexIndex[0],  &normalIndex[0], &vertexIndex[1], &normalIndex[1], &vertexIndex[2], &normalIndex[2] );
+        if (matches != 6)
+        {
+            printf("File can't be read by our simple parser : ( Try exporting with other options\n");
+            //return false;
+        }
+        vertexIndices.push_back(vertexIndex[0]);
+        vertexIndices.push_back(vertexIndex[1]);
+        vertexIndices.push_back(vertexIndex[2]);
+      }
+
+      else if(hasTextures && hasNormals)
+      {
+        int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2] );
+        if (matches != 9)
+        {
+            printf("File can't be read by our simple parser : ( Try exporting with other options\n");
+            //return false;
+        }
+        vertexIndices.push_back(vertexIndex[0]);
+        vertexIndices.push_back(vertexIndex[1]);
+        vertexIndices.push_back(vertexIndex[2]);
+      }
+    }
+  }
+  // For each vertex of each triangle
+  Vertex * geometry = new Vertex[ vertexIndices.size() ];
+  numVertices = vertexIndices.size();
+  for( unsigned int i = 0; i < vertexIndices.size(); i++ )
+  {
+    unsigned int vertexIndex = vertexIndices[i];
+    geometry[i].position[0] = temp_vertices[ vertexIndex-1 ].x;
+    geometry[i].position[1] = temp_vertices[ vertexIndex-1 ].y;
+    geometry[i].position[2] = temp_vertices[ vertexIndex-1 ].z;
+
+    geometry[i].color[0] = 1.0f / ( (i % 2) + 1.0f) ;
+    geometry[i].color[1] = 1.0f / ( (i % 4) + 1.0f) ;
+    geometry[i].color[2] = 1.0f / ( (i % 6) + 1.0f) ;
+  }
+  return geometry;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
