@@ -1,6 +1,6 @@
-Implementation of glut Menus and rotation/spin options for cube
+Implementation of model loader
 ========================================
-This is the implementation of a rotating cube with a moon that orbits around it.
+This is the implementation of a model loader in opengl.
 Currently I am compiling on Mac OSX Yosemite but the makefile is altered to compile on linux.
 The program compiles and runs on nomachine linux.  However the special script /usr/NX/scripts/vgl/vglrun ./Matrix must be used to run the program properly.
 
