@@ -4,21 +4,14 @@ This is the implementation of a rotating cube with a moon that orbits around it.
 Currently I am compiling on Mac OSX Yosemite but the makefile is altered to compile on linux.
 The program compiles and runs on nomachine linux.  However the special script /usr/NX/scripts/vgl/vglrun ./Matrix must be used to run the program properly.
 
-*New Functionality with PAO3*
-Moon included and rendered that will continously orbit the planet no matter its path.  
-I chose to not make the moon spin on its y axis, however I did include it in the code on line 223.  If line 223 is uncommented the moon will spin when the Start Spin option is selected on the right-click menu.
-Keyboard controls were also included. The right arrow key will cause the planet to make its orbit counter clockwise. The left arrow key will cause the planet to make its orbit clockwise.
-The seg fault problem in PA02 with the menu is solved as far as I can tell with the addition of the freeglut library. I also made a change through an exit flag that is checked for at the begining of update using glutFreeMainLoop() instead of using a exit(0) inside of the menu select.
 
+Add a file through the command line.  For example run ./Matrix table.obj to load the object I created in blender.
+This is an implementation of a .obj model loader with opengl.  The model loader will load a file through a command line argument and produce output onto the screen.  The model is colored through the geometry.color array.
 
-Menu Functionality includes
-Start Spin - Cube starts spinning 
-Stop Spin - Cube stops spinning
-Exit - Program stops and exits
+For this project I removed the cube, moon, and spinning functionality.
+Included in the bin folder.
 
-Clicking the mouse or pressing the A/a key causes the cube to rotate around a fix position clockwise or counterclockwise.
-
-Problems for this program included deciding how the moon would be able to keep orbit around the planet.  Another problem I ran into was when I implemented the moon orbiting and spinning, but I forgot to initialize and render the moon.
+Problems for this program included how I wanted to pass around the vertices, as well as how to load from the file and what to look for in the file. This was mostly explained through the provided tutorial. On my computer the table doesn't look quite right but the dragon model does.
 
 
 Building This Example
